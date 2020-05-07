@@ -1,26 +1,84 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
-
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+import React, { useState, useEffect } from "react"
+import Main from "./components/Main";
+import Nav from "./components/Nav";
+import Loader from "./components/Loader";
+import Keys from "./components/keys"
+import Background from "./components/background";
+export default function App() {
+    const myCards = [];
+    const URL = Keys("URL")
+    const APIkey = Keys("API")
+    console.log(URL, APIkey)
+    const [cards, setCards] = useState(myCards)
+    useEffect(() => {
+        fetch(URL, {
+            method: "get",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "x-apikey": APIkey,
+                "cache-control": "no-cache"
+            },
+        }).then(res => res.json()).then(data => setCards(data));
+    }, [])
+    function onFormSubmit(data) {
+        const postData = JSON.stringify(data)
+        fetch(URL, {
+            method: "post",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "x-apikey": APIkey,
+                "cache-control": "no-cache"
+            },
+            body: postData
+        }).then(res => res.json()).then(data2 => setCards(cards.concat(data2)));
+    }
+    function onCardMove(_id, whereTo) {
+        const data = {
+            list: whereTo
+        }
+        const postData = JSON.stringify(data)
+        fetch(`` + URL + `/` + _id + ``, {
+            method: "put",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "x-apikey": APIkey,
+                "cache-control": "no-cache"
+            },
+            body: postData
+        })
+            .then(res => res.json())
+            .then(ey => { changeCard(ey._id, whereTo) })
+    }
+    function changeCard(_id, whereTo) {
+        const nextCards = cards.map(card => {
+            if (card._id === _id) {
+                card.list = whereTo;
+            }
+            return card
+        })
+        setCards(nextCards)
+    }
+    function onCardDelete(_id) {
+        removecard(_id)
+        fetch(`` + URL + `` + "/" + _id.toString(), {
+            method: "delete",
+            headers: {
+                'Content-Type': 'application/json; charset=utf-8',
+                'x-apikey': APIkey,
+                "cache-control": "no-cache"
+            }
+        }).then(res => res.json());
+        function removecard(_id) {
+            const nextCards = cards.filter(card => card._id != _id);
+            setCards(nextCards)
+        }
+    }
+    return (
+        <div className="App" >
+            {cards.length === 0 && <Loader />}
+            <Nav />
+            <Main onCardDelete={onCardDelete} onCardMove={onCardMove} onFormSubmit={onFormSubmit} cards={cards} />
+            <Background></Background>
+        </div>
+    );
 }
-
-export default App;
