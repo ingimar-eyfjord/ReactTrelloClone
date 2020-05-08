@@ -8,7 +8,7 @@ export default function App() {
     const myCards = [];
     const URL = Keys("URL")
     const APIkey = Keys("API")
-    console.log(URL, APIkey)
+    const ListURL = Keys("LIST")
     const [cards, setCards] = useState(myCards)
     useEffect(() => {
         fetch(URL, {
@@ -73,11 +73,26 @@ export default function App() {
             setCards(nextCards)
         }
     }
+
+    function onNewListFormSubmit(data) {
+        const postData = JSON.stringify(data)
+        fetch(ListURL, {
+            method: "post",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "x-apikey": APIkey,
+                "cache-control": "no-cache"
+            },
+            body: postData
+        }).then(res => res.json()).then(data2 => console.log(data2));
+    }
+
+
     return (
         <div className="App" >
             {cards.length === 0 && <Loader />}
             <Nav />
-            <Main onCardDelete={onCardDelete} onCardMove={onCardMove} onFormSubmit={onFormSubmit} cards={cards} />
+            <Main onCardDelete={onCardDelete} onCardMove={onCardMove} onFormSubmit={onFormSubmit} onNewListFormSubmit={onNewListFormSubmit} cards={cards} />
             <Background></Background>
         </div>
     );

@@ -1,15 +1,13 @@
 import React, { useState } from "react";
 import SubButton from "./ForMbutton"
 import Input from 'muicss/lib/react/input';
+import { GithubPicker } from 'react-color';
 export default function Form(props) {
     const [title, setTitle] = useState("")
     const [color, setColor] = useState("")
     function submit(e) {
         e.preventDefault();
-        const data = {
-            Header: props.header,
-            Title: e.target.querySelector("input").value
-        }
+
         props.onFormSubmit({
             title: title,
             list: props.header,
@@ -24,16 +22,16 @@ export default function Form(props) {
         setTitle(e.target.value)
     }
     function colorChanged(e) {
-        setColor(e.target.value)
+        console.log(e)
+        setColor(e.hex)
     }
     return (
         <form onSubmit={submit}>
-            <Input label="Title" type="text" onChange={titleChanged} name="title" value={title} />
-            <label>
-                Color
-            <input type="color" onChange={colorChanged} name="color" value={color} />
-            </label>
-            <SubButton title={title} />
+            <Input label="Title" onChange={titleChanged} name="title" value={title} />
+            <div className="flexRow">
+                <GithubPicker onChange={colorChanged} name="color" value={color} />
+                <SubButton title={title} />
+            </div>
         </form>
     )
 }

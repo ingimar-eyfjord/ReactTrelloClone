@@ -12,9 +12,9 @@ export default function Card(props) {
     const style = {
         backgroundColor: props.color,
         display: "block",
-        width: "20px",
-        height: "5px",
-        borderRadious: "2px"
+        width: "5vw",
+        height: "1vw",
+        borderRadius: "0.2vw"
     }
     return (
         <Panel className="panelInside">
