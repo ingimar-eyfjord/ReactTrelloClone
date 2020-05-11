@@ -4,6 +4,7 @@ import Nav from "./components/Nav";
 import Loader from "./components/Loader";
 import Keys from "./components/keys"
 import Background from "./components/background";
+import EditCard from "./components/EditCard"
 export default function App() {
     const myCards = [];
     const URL = Keys("URL")
@@ -84,7 +85,108 @@ export default function App() {
                 "cache-control": "no-cache"
             },
             body: postData
-        }).then(res => res.json()).then(data2 => console.log(data2));
+        }).then(res => res.json()).then(data2 => setLists(Lists.concat(data2)));
+    }
+    let myLists = []
+    const [Lists, setLists] = useState(myLists)
+
+    useEffect(() => {
+        fetch(ListURL, {
+            method: "get",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "x-apikey": APIkey,
+                "cache-control": "no-cache"
+            },
+        }).then(res => res.json()).then(data => setLists(data));
+    }, [])
+
+    function onListDelete(_id) {
+        removeList(_id)
+        fetch(`` + ListURL + `` + "/" + _id.toString(), {
+            method: "delete",
+            headers: {
+                'Content-Type': 'application/json; charset=utf-8',
+                'x-apikey': APIkey,
+                "cache-control": "no-cache"
+            }
+        }).then(res => res.json());
+        function removeList(_id) {
+            const NextLists = Lists.filter(list => list._id != _id);
+            setLists(NextLists)
+        }
+    }
+    function deleteAllCardsInLists(IDs) {
+        const postData = JSON.stringify(IDs);
+        // Put in URL endpoint
+        fetch(URL + "/*", {
+            method: "delete",
+            headers: {
+                'Content-Type': 'application/json; charset=utf-8',
+                'x-apikey': APIkey,
+                "cache-control": "no-cache"
+            },
+            //The body needs hold the arrays of the ID
+            body: postData
+        }).then(res => res.json())
+            .then(data => {
+            })
+    }
+
+    function revealEditForm(e) {
+        const editModal = document.querySelector(".editcard")
+        const tag = e.target.parentElement.tagName;
+        const place = e.target.parentElement
+        let id = undefined
+        let listtile = undefined
+        let belongsto = undefined
+        if (tag == "svg") {
+            id = place.parentElement.id;
+            listtile = place.parentElement.querySelector("h3").textContent;
+            belongsto = place.parentElement.parentElement.querySelector("h2").textContent;
+        } else if (tag == "DIV") {
+            id = place.id
+            listtile = place.querySelector("h3").textContent;
+            belongsto = place.parentElement.querySelector("h2").textContent;
+        }
+        editModal.dataset.id = id;
+        if (!editModal.classList.contains("displaynone")) {
+            editModal.classList.add("displaynone")
+
+        } else {
+            editModal.dataset.listBelongs = belongsto
+            const x = e.clientX;
+            const y = e.clientY;
+            editModal.style.top = y + 20 + "px";
+            editModal.style.left = x - 20 + "px";
+            editModal.classList.remove("displaynone")
+        }
+    }
+
+
+    function onCardChange(data, id) {
+        const postData = JSON.stringify(data)
+        fetch(`` + URL + `/` + id + ``, {
+            method: "put",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "x-apikey": APIkey,
+                "cache-control": "no-cache"
+            },
+            body: postData
+        })
+            .then(res => res.json())
+            .then(cardis => { changeCard2(cardis) })
+    }
+
+    function changeCard2(cardis) {
+        const nextCards = cards.map(card => {
+            if (card._id === cardis._id) {
+                card = cardis
+            }
+            return card
+        })
+        setCards(nextCards)
     }
 
 
@@ -92,7 +194,8 @@ export default function App() {
         <div className="App" >
             {cards.length === 0 && <Loader />}
             <Nav />
-            <Main onCardDelete={onCardDelete} onCardMove={onCardMove} onFormSubmit={onFormSubmit} onNewListFormSubmit={onNewListFormSubmit} cards={cards} />
+            <Main onCardDelete={onCardDelete} revealEditForm={revealEditForm} onListDelete={onListDelete} deleteAllCardsInLists={deleteAllCardsInLists} onCardMove={onCardMove} onFormSubmit={onFormSubmit} onNewListFormSubmit={onNewListFormSubmit} Lists={Lists} cards={cards} />
+            <EditCard onCardChange={onCardChange} revealEditForm={revealEditForm} ></EditCard>
             <Background></Background>
         </div>
     );
